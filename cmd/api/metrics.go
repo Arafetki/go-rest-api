@@ -6,6 +6,8 @@ import (
 	"github.com/Arafetki/my-portfolio-api/internal/response"
 )
 
+// Todo
+
 func (app *application) reportMetricsHandler(w http.ResponseWriter, r *http.Request) {
 	data := map[string]any{
 		"status": "available",
