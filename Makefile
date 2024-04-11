@@ -47,7 +47,7 @@ audit:
 .PHONY: build
 ## build: build the cmd/api application
 build:
-	go build -o=/bin/api ./cmd/api
+	go build -o=./bin/api ./cmd/api
 
 
 
@@ -55,7 +55,7 @@ build:
 ## run/live: run the application with reloading on file changes
 run/live:
 	go run github.com/cosmtrek/air@v1.43.0 \
-		--build.cmd "make build" --build.bin "/bin/api" --build.delay "100" \
+		--build.cmd "make build" --build.bin "./bin/api" --build.delay "100" \
 		--build.exclude_dir "" \
 		--build.include_ext "go,sql" \
 		--misc.clean_on_exit "true"
