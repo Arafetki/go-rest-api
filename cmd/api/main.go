@@ -5,6 +5,7 @@ import (
 	"os"
 	"runtime/debug"
 	"strings"
+	"sync"
 
 	"github.com/Arafetki/my-portfolio-api/internal/env"
 	"github.com/lmittmann/tint"
@@ -18,7 +19,10 @@ type config struct {
 type application struct {
 	cfg    config
 	logger *slog.Logger
+	wg     sync.WaitGroup
 }
+
+const version = "1.0.0"
 
 func main() {
 	var cfg config
@@ -26,12 +30,10 @@ func main() {
 	cfg.httpPort = env.GetInt("APP_PORT", 8080)
 	cfg.env = env.GetString("APP_ENV", "development")
 	switch strings.ToLower(cfg.env) {
-	case "staging":
-		logLevel = slog.LevelInfo
-	case "production":
-		logLevel = slog.LevelWarn
-	default:
+	case "development":
 		logLevel = slog.LevelDebug
+	default:
+		logLevel = slog.LevelInfo
 	}
 
 	logger := slog.New(tint.NewHandler(os.Stdout, &tint.Options{Level: logLevel}))

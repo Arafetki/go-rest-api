@@ -1,6 +1,7 @@
 package main
 
 import (
+	"expvar"
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
@@ -18,7 +19,8 @@ func (app *application) routes() http.Handler {
 	router.Use(middleware.Heartbeat("/ping"))
 
 	router.Route("/v1", func(r chi.Router) {
-		r.Get("/metrics", app.reportMetricsHandler)
+		r.Get("/healthcheck", app.checkHealthHandler)
+		r.Get("/metrics", expvar.Handler().ServeHTTP)
 
 	})
 
