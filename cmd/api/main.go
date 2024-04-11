@@ -4,6 +4,7 @@ import (
 	"log/slog"
 	"os"
 	"runtime/debug"
+	"strings"
 
 	"github.com/Arafetki/my-portfolio-api/internal/env"
 	"github.com/lmittmann/tint"
@@ -24,13 +25,13 @@ func main() {
 	var logLevel slog.Level
 	cfg.httpPort = env.GetInt("APP_PORT", 8080)
 	cfg.env = env.GetString("APP_ENV", "development")
-	switch cfg.env {
-	case "development":
-		logLevel = slog.LevelDebug
+	switch strings.ToLower(cfg.env) {
 	case "staging":
 		logLevel = slog.LevelInfo
 	case "production":
 		logLevel = slog.LevelWarn
+	default:
+		logLevel = slog.LevelDebug
 	}
 
 	logger := slog.New(tint.NewHandler(os.Stdout, &tint.Options{Level: logLevel}))
