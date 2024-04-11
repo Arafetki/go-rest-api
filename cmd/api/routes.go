@@ -14,7 +14,10 @@ func (app *application) routes() http.Handler {
 	router.Use(middleware.Recoverer)
 	router.Use(middleware.Heartbeat("/ping"))
 
-	router.Get("/v1/metrics", app.reportMetricsHandler)
+	router.Route("/v1", func(r chi.Router) {
+		r.Get("/metrics", app.reportMetricsHandler)
+
+	})
 
 	return router
 }
