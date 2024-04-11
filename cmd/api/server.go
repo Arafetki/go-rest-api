@@ -22,7 +22,7 @@ const (
 func (app *application) serveHTTP() error {
 	srv := &http.Server{
 		Addr:         fmt.Sprintf(":%d", app.cfg.httpPort),
-		Handler:      nil,
+		Handler:      app.routes(),
 		ErrorLog:     slog.NewLogLogger(app.logger.Handler(), slog.LevelWarn),
 		ReadTimeout:  defaultReadTimeout,
 		WriteTimeout: defaultWriteTimeout,
