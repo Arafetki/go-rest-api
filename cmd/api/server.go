@@ -55,5 +55,7 @@ func (app *application) serveHTTP() error {
 
 	app.logger.Warn(fmt.Sprintf("stopped %s server", app.cfg.env))
 
+	app.wg.Wait()
+
 	return nil
 }
