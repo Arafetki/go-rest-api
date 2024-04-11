@@ -16,5 +16,8 @@ func (app *application) reportMetricsHandler(w http.ResponseWriter, r *http.Requ
 			"version":     "1.0.0",
 		},
 	}
-	response.JSON(w, http.StatusOK, data)
+	err := response.JSON(w, http.StatusOK, data)
+	if err != nil {
+		app.internalServerErrorResponse(w, r, err)
+	}
 }
