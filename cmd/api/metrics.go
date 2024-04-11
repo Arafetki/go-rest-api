@@ -1,8 +1,18 @@
 package main
 
-import "net/http"
+import (
+	"net/http"
+
+	"github.com/Arafetki/my-portfolio-api/internal/response"
+)
 
 func (app *application) reportMetricsHandler(w http.ResponseWriter, r *http.Request) {
-	w.WriteHeader(http.StatusOK)
-	w.Write([]byte("Hello world"))
+	data := map[string]any{
+		"status": "available",
+		"system_info": map[string]string{
+			"environment": app.cfg.env,
+			"version":     "1.0.0",
+		},
+	}
+	response.JSON(w, http.StatusOK, data)
 }
