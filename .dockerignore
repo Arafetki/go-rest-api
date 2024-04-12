@@ -1,5 +1,8 @@
-bin
+bin/
+tmp/
 Containerfile
+Dockerfile
+.dockerignore
 .gitignore
 .git
 .env*

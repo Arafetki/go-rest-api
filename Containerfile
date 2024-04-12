@@ -13,11 +13,7 @@ ENV GOCACHE=/root/.cache/go-build
 RUN --mount=type=cache,target="/root/.cache/go-build" go build -ldflags='-s -w' -o=./bin/api ./cmd/api
 
 FROM gcr.io/distroless/static AS final
-ENV APP_HOME=/home/app
-WORKDIR $APP_HOME
+WORKDIR /bin
 COPY --from=build /usr/src/app/bin/api ./api
-
-RUN chown -R nonroot:nonroot $APP_HOME
-USER nonroot
 
 CMD ["./api"]
