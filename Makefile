@@ -1,3 +1,5 @@
+include .env
+
 ## Colors
 COLOR_RESET   = \033[0m
 COLOR_INFO    = \033[32m
@@ -47,8 +49,7 @@ audit:
 .PHONY: build
 ## build: build the cmd/api application
 build:
-	go build -o=./bin/api ./cmd/api
-
+	go build -ldflags='-s -w' -o=./bin/api ./cmd/api
 
 
 .PHONY: run/live
