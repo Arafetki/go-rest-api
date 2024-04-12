@@ -4,7 +4,6 @@ import (
 	"log/slog"
 	"os"
 	"runtime/debug"
-	"strings"
 	"sync"
 
 	"github.com/Arafetki/my-portfolio-api/internal/env"
@@ -25,18 +24,12 @@ type application struct {
 const version = "1.0.0"
 
 func main() {
+
 	var cfg config
-	var logLevel slog.Level
 	cfg.httpPort = env.GetInt("APP_PORT", 8080)
 	cfg.env = env.GetString("APP_ENV", "development")
-	switch strings.ToLower(cfg.env) {
-	case "development":
-		logLevel = slog.LevelDebug
-	default:
-		logLevel = slog.LevelInfo
-	}
 
-	logger := slog.New(tint.NewHandler(os.Stdout, &tint.Options{Level: logLevel}))
+	logger := slog.New(tint.NewHandler(os.Stdout, &tint.Options{Level: slog.LevelDebug}))
 
 	app := &application{
 		cfg:    cfg,
