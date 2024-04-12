@@ -2,15 +2,15 @@ FROM golang:1.22.0-bullseye AS build
 WORKDIR /usr/src/app
 ENV CGO_ENABLED=0
 
-RUN apt-get update && apt-get install -y make && apt-get clean
-
 COPY go.mod go.sum ./
 RUN go mod download && go mod verify
 
 COPY . .
-RUN make tidy
+RUN go fmt ./... && \
+    go mod tidy -v
+
 ENV GOCACHE=/root/.cache/go-build
-RUN --mount=type=cache,target="/root/.cache/go-build" make build
+RUN --mount=type=cache,target="/root/.cache/go-build" go build -ldflags='-s -w' -o=./bin/api ./cmd/api
 
 FROM gcr.io/distroless/static AS final
 ENV APP_HOME=/home/app
