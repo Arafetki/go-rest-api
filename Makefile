@@ -28,8 +28,8 @@ help:
 .PHONY: tidy
 ## format code and tidy modfile
 tidy:
-	go fmt ./...
 	go mod tidy -v
+	go fmt ./...
 
 
 .PHONY: audit
