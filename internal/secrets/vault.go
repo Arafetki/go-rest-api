@@ -2,6 +2,7 @@ package secrets
 
 import (
 	"context"
+	"fmt"
 	"os"
 	"time"
 
@@ -37,4 +38,12 @@ func NewVault(path string) (*Vault, error) {
 	}
 
 	return &Vault{path: path, client: client.Logical()}, nil
+}
+
+func (v *Vault) GetSecret(secretPath string) map[string]any {
+	secret, err := v.client.Read(fmt.Sprintf("%s/data/%s", v.path, secretPath))
+	if err != nil {
+		panic(err)
+	}
+	return secret.Data["data"].(map[string]any)
 }

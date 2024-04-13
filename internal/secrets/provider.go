@@ -3,5 +3,13 @@ package secrets
 // Todo
 
 type Provider interface {
-	GetSecret(v string) (any, error)
+	GetSecret(secretPath string) map[string]any
+}
+
+type Secrets struct {
+	Provider Provider
+}
+
+func New(provider Provider) *Secrets {
+	return &Secrets{Provider: provider}
 }
