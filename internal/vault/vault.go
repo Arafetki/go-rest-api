@@ -1,4 +1,4 @@
-package secrets
+package vault
 
 import (
 	"context"
@@ -6,21 +6,21 @@ import (
 	"os"
 	"time"
 
-	vault "github.com/hashicorp/vault/api"
+	"github.com/hashicorp/vault/api"
 	auth "github.com/hashicorp/vault/api/auth/approle"
 )
 
 type Vault struct {
-	path   string
-	client *vault.Logical
+	Path   string
+	Client *api.Logical
 }
 
 func NewVault(path string) (*Vault, error) {
-	config := &vault.Config{
+	config := &api.Config{
 		Address: os.Getenv("VAULT_ADDR"),
 		Timeout: 10 * time.Second,
 	}
-	client, err := vault.NewClient(config)
+	client, err := api.NewClient(config)
 	if err != nil {
 		return nil, err
 	}
@@ -37,13 +37,17 @@ func NewVault(path string) (*Vault, error) {
 		return nil, err
 	}
 
-	return &Vault{path: path, client: client.Logical()}, nil
+	return &Vault{Path: path, Client: client.Logical()}, nil
 }
 
-func (v *Vault) GetSecret(secretPath string) map[string]string {
-	secret, err := v.client.Read(fmt.Sprintf("%s/data/%s", v.path, secretPath))
+func (v Vault) ReadString(secretPath string, key string) (string, error) {
+	secret, err := v.Client.Read(fmt.Sprintf("%s/data/%s", v.Path, secretPath))
 	if err != nil {
-		panic(err)
+		return "", err
 	}
-	return secret.Data["data"].(map[string]string)
+	secretValue, exist := secret.Data["data"].(map[string]any)[key]
+	if !exist {
+		return "", fmt.Errorf("secret %s not found", key)
+	}
+	return secretValue.(string), nil
 }
