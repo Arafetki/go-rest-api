@@ -42,7 +42,7 @@ func main() {
 
 	var cfg config
 
-	cfg.db.dsn = v.GetSecret("database")["dsn"].(string)
+	cfg.db.dsn = v.GetSecret("database")["dsn"]
 	cfg.httpPort = env.GetInt("APP_PORT", 8080)
 	cfg.env = env.GetString("APP_ENV", "development")
 	cfg.db.automigrate = env.GetBool("DB_AUTOMIGRATE", true)
