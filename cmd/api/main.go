@@ -10,6 +10,7 @@ import (
 	database "github.com/Arafetki/my-portfolio-api/internal/db"
 	"github.com/Arafetki/my-portfolio-api/internal/env"
 	"github.com/Arafetki/my-portfolio-api/internal/secrets"
+	"github.com/Arafetki/my-portfolio-api/internal/vault"
 	"github.com/lmittmann/tint"
 )
 
@@ -23,26 +24,33 @@ type config struct {
 }
 
 type application struct {
-	cfg    config
-	logger *slog.Logger
-	wg     sync.WaitGroup
+	cfg         config
+	logger      *slog.Logger
+	secretStore *secrets.Store
+	wg          sync.WaitGroup
 }
 
 const version = "1.0.0"
 
 func main() {
 
+	var cfg config
 	logger := slog.New(tint.NewHandler(os.Stdout, &tint.Options{Level: slog.LevelDebug}))
-	v, err := secrets.NewVault("secret")
+
+	// Establish Vault Connection
+	v, err := vault.NewVault("secret")
 	if err != nil {
 		logger.Error(fmt.Sprintf("vault: %s", err.Error()))
 		os.Exit(1)
 	}
-	logger.Info("vault: access granted!")
+	// Initialize Secret Store
+	secretStore := secrets.NewStore(v)
 
-	var cfg config
-
-	cfg.db.dsn = v.GetSecret("database")["dsn"]
+	cfg.db.dsn, err = secretStore.Provider.ReadString("database", "dsn")
+	if err != nil {
+		logger.Error(err.Error())
+		os.Exit(1)
+	}
 	cfg.httpPort = env.GetInt("APP_PORT", 8080)
 	cfg.env = env.GetString("APP_ENV", "development")
 	cfg.db.automigrate = env.GetBool("DB_AUTOMIGRATE", true)
@@ -57,8 +65,9 @@ func main() {
 	logger.Info("db connection has been established sucessfully!")
 
 	app := &application{
-		cfg:    cfg,
-		logger: logger,
+		cfg:         cfg,
+		logger:      logger,
+		secretStore: secretStore,
 	}
 
 	err = app.serveHTTP()
