@@ -9,7 +9,7 @@ COLOR_COMMENT = \033[33m
 ## Help
 help:
 	@printf "${COLOR_COMMENT}Usage:${COLOR_RESET}\n"
-	@printf " make [target]\n\n"
+	@printf " make [target] [args...]\n\n"
 	@printf "${COLOR_COMMENT}Available targets:${COLOR_RESET}\n"
 	@awk '/^[a-zA-Z\-\0-9\.@]+:/ { \
 		helpMessage = match(lastLine, /^## (.*)/); \
@@ -26,14 +26,14 @@ help:
 # ==================================================================================== #
 
 .PHONY: tidy
-## tidy: format code and tidy modfile
+## format code and tidy modfile
 tidy:
-	go fmt ./...
 	go mod tidy -v
+	go fmt ./...
 
 
 .PHONY: audit
-## audit: run quality control checks
+## run quality control checks
 audit:
 	go mod verify
 	go vet ./...
@@ -47,13 +47,13 @@ audit:
 
 
 .PHONY: build
-## build: build the cmd/api application
+## build the cmd/api application
 build:
 	go build -ldflags='-s -w' -o=./bin/api ./cmd/api
 
 
 .PHONY: run/live
-## run/live: run the application with reloading on file changes
+## run the application with reloading on file changes
 run/live:
 	go run github.com/cosmtrek/air@v1.43.0 \
 		--build.cmd "make build" --build.bin "./bin/api" --build.delay "100" \
@@ -61,6 +61,15 @@ run/live:
 		--build.include_ext "go,sql" \
 		--misc.clean_on_exit "true"
 
+
+# ==================================================================================== #
+# Docker
+# ==================================================================================== #
+
+.PHONY: docker/build
+## build docker image:tag
+docker/build:
+	docker build -t ${name}:${tag} -f Containerfile .
 
 # ==================================================================================== #
 # SQL MIGRATIONS
