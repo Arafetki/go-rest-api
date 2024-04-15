@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"log/slog"
 	"os"
 	"runtime/debug"
@@ -46,26 +45,35 @@ const version = "1.0.0"
 
 func main() {
 
-	var cfg config
 	logger := slog.New(tint.NewHandler(os.Stdout, &tint.Options{Level: slog.LevelDebug}))
+
+	err := run(logger)
+	if err != nil {
+		trace := string(debug.Stack())
+		logger.Error(err.Error(), "trace", trace)
+		os.Exit(1)
+	}
+}
+
+func run(logger *slog.Logger) error {
+
+	var cfg config
+	cfg.httpPort = env.GetInt("APP_PORT", 8080)
+	cfg.env = env.GetString("APP_ENV", "development")
+	cfg.db.automigrate = env.GetBool("DB_AUTOMIGRATE", true)
 
 	// Establish Vault Connection
 	v, err := vault.NewVault("secret")
 	if err != nil {
-		logger.Error(fmt.Sprintf("vault: %s", err.Error()))
-		os.Exit(1)
+		return err
 	}
 	// Initialize Secret Store
 	secretStore := secrets.NewStore(v)
 
 	cfg.db.dsn, err = secretStore.Provider.ReadString("database", "dsn")
 	if err != nil {
-		logger.Error(err.Error())
-		os.Exit(1)
+		return err
 	}
-	cfg.httpPort = env.GetInt("APP_PORT", 8080)
-	cfg.env = env.GetString("APP_ENV", "development")
-	cfg.db.automigrate = env.GetBool("DB_AUTOMIGRATE", true)
 
 	db, err := database.New(cfg.db.dsn, cfg.db.automigrate)
 	if err != nil {
@@ -82,10 +90,5 @@ func main() {
 		secretStore: secretStore,
 	}
 
-	err = app.serveHTTP()
-	if err != nil {
-		trace := string(debug.Stack())
-		logger.Error(err.Error(), "trace", trace)
-		os.Exit(1)
-	}
+	return app.serveHTTP()
 }
