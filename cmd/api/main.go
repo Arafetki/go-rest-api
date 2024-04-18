@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"log/slog"
 	"os"
 	"runtime/debug"
@@ -31,6 +32,9 @@ type config struct {
 		dsn         string
 		automigrate bool
 	}
+	jwt struct {
+		secretkey string
+	}
 }
 
 type application struct {
@@ -57,19 +61,16 @@ func main() {
 func run(logger *slog.Logger) error {
 
 	var cfg config
+
 	cfg.httpPort = env.GetInt("APP_PORT", 8080)
 	cfg.env = env.GetString("APP_ENV", "development")
 	cfg.db.automigrate = env.GetBool("DB_AUTOMIGRATE", true)
+	cfg.db.dsn = os.Getenv("DB_DSN")
+	cfg.jwt.secretkey = os.Getenv("SUPABASE_JWT_SECRET")
+	if cfg.jwt.secretkey == "" {
+		return errors.New("please set the SUPABASE_JWT_SECRET environment variable")
+	}
 
-	// // Establish Vault Connection
-	// v, err := vault.NewVault("secret")
-	// if err != nil {
-	// 	return err
-	// }
-	// // Initialize Secret Store
-	// secretStore := secrets.NewStore(v)
-
-	cfg.db.dsn = env.GetString("DB_DSN", "")
 	db, err := database.New(cfg.db.dsn, cfg.db.automigrate)
 	if err != nil {
 		logger.Error(err.Error())
