@@ -19,10 +19,20 @@ func (app *application) routes() http.Handler {
 	router.NotFound(app.notFoundResponse)
 	router.MethodNotAllowed(app.methodNotAllowedResponse)
 
+	// Public
 	router.Use(middleware.Heartbeat("/ping"))
 
 	router.Route("/v1", func(r chi.Router) {
-		// Swagger
+
+		// Authentication middleware
+		r.Use(app.authenticate)
+
+		// Public - No bearer token should be provided in headers
+		r.Get("/healthcheck", app.checkHealthHandler)
+
+		// Private - Require bearer token to be provided in headers
+		// r.Use(app.requireAuthenticatedUser)
+
 		r.Get("/swagger/*", httpSwagger.Handler(
 			httpSwagger.URL(fmt.Sprintf("http://localhost:%d/v1/swagger/doc.json", app.cfg.httpPort)),
 			httpSwagger.DeepLinking(true),
@@ -30,7 +40,6 @@ func (app *application) routes() http.Handler {
 			httpSwagger.DomID("swagger-ui"),
 		),
 		)
-		r.Get("/healthcheck", app.checkHealthHandler)
 		r.Get("/metrics", expvar.Handler().ServeHTTP)
 
 	})

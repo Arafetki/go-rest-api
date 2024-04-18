@@ -1,1 +1,2 @@
-DROP TABLE IF EXISTS blog_schema.categories CASCADE;
+DROP TABLE IF EXISTS blog.categories CASCADE;
+
