@@ -1,5 +1,5 @@
 CREATE TABLE
-    IF NOT EXISTS blog_schema.articles (
+    IF NOT EXISTS blog.articles (
         id SERIAL PRIMARY KEY,
         title VARCHAR(100) NOT NULL,
         body TEXT,

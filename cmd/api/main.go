@@ -8,8 +8,6 @@ import (
 
 	database "github.com/Arafetki/my-portfolio-api/internal/db"
 	"github.com/Arafetki/my-portfolio-api/internal/env"
-	"github.com/Arafetki/my-portfolio-api/internal/secrets"
-	"github.com/Arafetki/my-portfolio-api/internal/vault"
 	"github.com/lmittmann/tint"
 )
 
@@ -35,10 +33,9 @@ type config struct {
 }
 
 type application struct {
-	cfg         config
-	logger      *slog.Logger
-	secretStore *secrets.Store
-	wg          sync.WaitGroup
+	cfg    config
+	logger *slog.Logger
+	wg     sync.WaitGroup
 }
 
 const version = "1.0.0"
@@ -62,19 +59,15 @@ func run(logger *slog.Logger) error {
 	cfg.env = env.GetString("APP_ENV", "development")
 	cfg.db.automigrate = env.GetBool("DB_AUTOMIGRATE", true)
 
-	// Establish Vault Connection
-	v, err := vault.NewVault("secret")
-	if err != nil {
-		return err
-	}
-	// Initialize Secret Store
-	secretStore := secrets.NewStore(v)
+	// // Establish Vault Connection
+	// v, err := vault.NewVault("secret")
+	// if err != nil {
+	// 	return err
+	// }
+	// // Initialize Secret Store
+	// secretStore := secrets.NewStore(v)
 
-	cfg.db.dsn, err = secretStore.Provider.ReadString("database", "dsn")
-	if err != nil {
-		return err
-	}
-
+	cfg.db.dsn = env.GetString("DB_DSN", "")
 	db, err := database.New(cfg.db.dsn, cfg.db.automigrate)
 	if err != nil {
 		logger.Error(err.Error())
@@ -85,9 +78,8 @@ func run(logger *slog.Logger) error {
 	logger.Info("db connection has been established sucessfully!")
 
 	app := &application{
-		cfg:         cfg,
-		logger:      logger,
-		secretStore: secretStore,
+		cfg:    cfg,
+		logger: logger,
 	}
 
 	return app.serveHTTP()
