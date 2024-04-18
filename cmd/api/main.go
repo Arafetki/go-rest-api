@@ -8,6 +8,7 @@ import (
 
 	database "github.com/Arafetki/my-portfolio-api/internal/db"
 	"github.com/Arafetki/my-portfolio-api/internal/env"
+	"github.com/Arafetki/my-portfolio-api/internal/repository"
 	"github.com/lmittmann/tint"
 )
 
@@ -33,9 +34,10 @@ type config struct {
 }
 
 type application struct {
-	cfg    config
-	logger *slog.Logger
-	wg     sync.WaitGroup
+	cfg        config
+	logger     *slog.Logger
+	repository *repository.Repository
+	wg         sync.WaitGroup
 }
 
 const version = "1.0.0"
@@ -78,8 +80,9 @@ func run(logger *slog.Logger) error {
 	logger.Info("db connection has been established sucessfully!")
 
 	app := &application{
-		cfg:    cfg,
-		logger: logger,
+		cfg:        cfg,
+		logger:     logger,
+		repository: repository.NewRepo(db),
 	}
 
 	return app.serveHTTP()
