@@ -45,3 +45,11 @@ func (app *application) methodNotAllowedResponse(w http.ResponseWriter, r *http.
 	message := fmt.Sprintf("the %s method is not supported for this resource", r.Method)
 	app.errorMessage(w, r, http.StatusNotFound, message, nil)
 }
+
+func (app *application) invalidAuthenticationTokenResponse(w http.ResponseWriter, r *http.Request) {
+	headers := make(http.Header)
+
+	headers.Add("WWW-Authenticate", "Bearer")
+	message := "invalid or missing authentication token"
+	app.errorMessage(w, r, http.StatusUnauthorized, message, headers)
+}
