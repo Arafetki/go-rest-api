@@ -1,12 +1,16 @@
 package main
 
 import (
+	"database/sql"
+	"errors"
 	"net/http"
+	"strconv"
 	"time"
 
 	"github.com/Arafetki/my-portfolio-api/internal/models"
 	"github.com/Arafetki/my-portfolio-api/internal/request"
 	"github.com/Arafetki/my-portfolio-api/internal/response"
+	"github.com/go-chi/chi/v5"
 	"github.com/go-playground/validator/v10"
 )
 
@@ -56,4 +60,29 @@ func (app *application) createArticleHandler(w http.ResponseWriter, r *http.Requ
 		app.internalServerErrorResponse(w, r, err)
 	}
 
+}
+
+func (app *application) fetchArticleHandler(w http.ResponseWriter, r *http.Request) {
+
+	idParam := chi.URLParamFromCtx(r.Context(), "id")
+	id, err := strconv.Atoi(idParam)
+	if err != nil || id < 1 {
+		app.badRequestResponse(w, r, errors.New("invalid id param"))
+		return
+	}
+
+	article, err := app.repository.Article.GetByID(id)
+	if err != nil {
+		switch {
+		case errors.Is(err, sql.ErrNoRows):
+			app.notFoundResponse(w, r)
+		default:
+			app.internalServerErrorResponse(w, r, err)
+		}
+		return
+	}
+	err = response.JSON(w, http.StatusOK, envelope{"article": article})
+	if err != nil {
+		app.internalServerErrorResponse(w, r, err)
+	}
 }

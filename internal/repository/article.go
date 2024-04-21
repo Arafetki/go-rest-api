@@ -14,7 +14,7 @@ type ArticleRepo struct {
 
 func (ar ArticleRepo) Create(article *models.Article) error {
 
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
 
 	query := `INSERT INTO blog.articles (title,body,author,published,publish_date)
@@ -32,4 +32,32 @@ func (ar ArticleRepo) Create(article *models.Article) error {
 	}
 
 	return nil
+}
+
+func (ar ArticleRepo) GetByID(id int) (models.Article, error) {
+
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	query := `SELECT * FROM blog.articles
+			WHERE id=$1;`
+
+	var article models.Article
+
+	err := ar.db.QueryRowxContext(ctx, query, id).Scan(
+		&article.ID,
+		&article.Title,
+		&article.Body,
+		&article.Author,
+		&article.Published,
+		&article.PublishDate,
+		&article.Created,
+	)
+
+	if err != nil {
+		return models.Article{}, err
+	}
+
+	return article, nil
+
 }

@@ -29,6 +29,7 @@ func (app *application) routes() http.Handler {
 
 		// @API V1 : Public routes
 		r.Get("/healthcheck", app.checkHealthHandler)
+		r.Get("/articles/{id}", app.fetchArticleHandler)
 
 		// @API V1 : Private routes
 		r.Group(func(privateRouter chi.Router) {
