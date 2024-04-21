@@ -43,6 +43,8 @@ func (app *application) routes() http.Handler {
 			),
 			)
 			privateRouter.Get("/metrics", expvar.Handler().ServeHTTP)
+
+			privateRouter.Post("/articles", app.createArticleHandler)
 		})
 
 	})

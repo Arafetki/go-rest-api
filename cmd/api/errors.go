@@ -5,9 +5,9 @@ import (
 	"log/slog"
 	"net/http"
 	"runtime/debug"
-	"strings"
 
 	"github.com/Arafetki/my-portfolio-api/internal/response"
+	"github.com/go-playground/validator/v10"
 )
 
 func (app *application) logServerError(r *http.Request, err error) {
@@ -21,8 +21,7 @@ func (app *application) logServerError(r *http.Request, err error) {
 	app.logger.Error(message, requestAttrs, "trace", trace)
 }
 
-func (app *application) errorMessage(w http.ResponseWriter, r *http.Request, status int, message string, headers http.Header) {
-	message = strings.ToUpper(message[:1]) + message[1:]
+func (app *application) errorMessage(w http.ResponseWriter, r *http.Request, status int, message any, headers http.Header) {
 	err := response.JSONWithHeaders(w, status, envelope{"error": message}, headers)
 	if err != nil {
 		app.logServerError(r, err)
@@ -57,4 +56,13 @@ func (app *application) invalidAuthenticationTokenResponse(w http.ResponseWriter
 func (app *application) authenticationRequiredResponse(w http.ResponseWriter, r *http.Request) {
 	message := "you must be authenticated to access this resource"
 	app.errorMessage(w, r, http.StatusUnauthorized, message, nil)
+}
+
+func (app *application) badRequestResponse(w http.ResponseWriter, r *http.Request, err error) {
+	app.logServerError(r, err)
+	app.errorMessage(w, r, http.StatusBadRequest, err.Error(), nil)
+}
+
+func (app *application) failedValidationResponse(w http.ResponseWriter, r *http.Request, errors validator.ValidationErrors) {
+	app.errorMessage(w, r, http.StatusUnprocessableEntity, errors, nil)
 }

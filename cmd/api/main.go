@@ -10,6 +10,7 @@ import (
 	database "github.com/Arafetki/my-portfolio-api/internal/db"
 	"github.com/Arafetki/my-portfolio-api/internal/env"
 	"github.com/Arafetki/my-portfolio-api/internal/repository"
+	"github.com/go-playground/validator/v10"
 	"github.com/lmittmann/tint"
 )
 
@@ -42,6 +43,7 @@ type application struct {
 	cfg        config
 	logger     *slog.Logger
 	repository *repository.Repository
+	validator  *validator.Validate
 	wg         sync.WaitGroup
 }
 
@@ -86,6 +88,7 @@ func run(logger *slog.Logger) error {
 		cfg:        cfg,
 		logger:     logger,
 		repository: repository.NewRepo(db),
+		validator:  validator.New(),
 	}
 
 	return app.serveHTTP()
