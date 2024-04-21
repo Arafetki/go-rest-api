@@ -4,10 +4,10 @@ import "time"
 
 type Article struct {
 	ID          int       `json:"id"`
-	Title       string    `json:"title"`
+	Title       string    `json:"title" validate:"required,max=100"`
 	Body        string    `json:"body"`
-	Author      string    `json:"author"`
+	Author      string    `json:"author" validate:"required,max=50"`
 	Published   bool      `json:"published"`
-	PublishDate time.Time `json:"publish_date"`
+	PublishDate string    `json:"publish_date"`
 	Created     time.Time `json:"created"`
 }

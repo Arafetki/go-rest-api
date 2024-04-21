@@ -8,6 +8,8 @@ import (
 type Repository struct {
 	Article interface {
 		Create(ar *models.Article) error
+		GetByID(id int) (models.Article, error)
+		Delete(id int) error
 	}
 }
 
