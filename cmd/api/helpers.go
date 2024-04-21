@@ -6,16 +6,9 @@ import (
 	"strconv"
 
 	"github.com/go-chi/chi/v5"
-	"github.com/golang-jwt/jwt/v5"
 )
 
-
 type envelope map[string]any
-
-type Claims struct {
-	Email string
-	jwt.RegisteredClaims
-}
 
 func getIDParam(r *http.Request) (int, error) {
 	idParam := chi.URLParamFromCtx(r.Context(), "id")
@@ -25,4 +18,3 @@ func getIDParam(r *http.Request) (int, error) {
 	}
 	return id, nil
 }
-
