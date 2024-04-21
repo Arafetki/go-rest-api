@@ -4,13 +4,12 @@ import (
 	"database/sql"
 	"errors"
 	"net/http"
-	"strconv"
 	"time"
 
 	"github.com/Arafetki/my-portfolio-api/internal/models"
+	"github.com/Arafetki/my-portfolio-api/internal/repository"
 	"github.com/Arafetki/my-portfolio-api/internal/request"
 	"github.com/Arafetki/my-portfolio-api/internal/response"
-	"github.com/go-chi/chi/v5"
 	"github.com/go-playground/validator/v10"
 )
 
@@ -55,7 +54,7 @@ func (app *application) createArticleHandler(w http.ResponseWriter, r *http.Requ
 		return
 	}
 
-	err = response.JSON(w, http.StatusOK, article)
+	err = response.JSON(w, http.StatusCreated, article)
 	if err != nil {
 		app.internalServerErrorResponse(w, r, err)
 	}
@@ -64,10 +63,9 @@ func (app *application) createArticleHandler(w http.ResponseWriter, r *http.Requ
 
 func (app *application) fetchArticleHandler(w http.ResponseWriter, r *http.Request) {
 
-	idParam := chi.URLParamFromCtx(r.Context(), "id")
-	id, err := strconv.Atoi(idParam)
-	if err != nil || id < 1 {
-		app.badRequestResponse(w, r, errors.New("invalid id param"))
+	id, err := getIDParam(r)
+	if err != nil {
+		app.badRequestResponse(w, r, err)
 		return
 	}
 
@@ -85,4 +83,30 @@ func (app *application) fetchArticleHandler(w http.ResponseWriter, r *http.Reque
 	if err != nil {
 		app.internalServerErrorResponse(w, r, err)
 	}
+}
+
+func (app *application) deleteArticleHandler(w http.ResponseWriter, r *http.Request) {
+
+	id, err := getIDParam(r)
+	if err != nil {
+		app.badRequestResponse(w, r, err)
+		return
+	}
+
+	err = app.repository.Article.Delete(id)
+	if err != nil {
+		switch {
+		case errors.Is(err, repository.ErrRecordNotFound):
+			app.notFoundResponse(w, r)
+		default:
+			app.internalServerErrorResponse(w, r, err)
+		}
+		return
+	}
+
+	err = response.JSON(w, http.StatusOK, envelope{"message": "article successfully deleted"})
+	if err != nil {
+		app.internalServerErrorResponse(w, r, err)
+	}
+
 }

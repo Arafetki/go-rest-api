@@ -2,6 +2,7 @@ package repository
 
 import (
 	"context"
+	"errors"
 	"time"
 
 	database "github.com/Arafetki/my-portfolio-api/internal/db"
@@ -11,6 +12,10 @@ import (
 type ArticleRepo struct {
 	db *database.DB
 }
+
+var (
+	ErrRecordNotFound = errors.New("record not found")
+)
 
 func (ar ArticleRepo) Create(article *models.Article) error {
 
@@ -60,4 +65,32 @@ func (ar ArticleRepo) GetByID(id int) (models.Article, error) {
 
 	return article, nil
 
+}
+
+func (ar ArticleRepo) Delete(id int) error {
+
+	if id < 1 {
+		return ErrRecordNotFound
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	query := `DELETE FROM blog.articles
+			  WHERE id=$1;`
+
+	res, err := ar.db.ExecContext(ctx, query, id)
+	if err != nil {
+		return err
+	}
+
+	rowsAffected, err := res.RowsAffected()
+	if err != nil {
+		return err
+	}
+	if rowsAffected == 0 {
+		return ErrRecordNotFound
+	}
+
+	return nil
 }
