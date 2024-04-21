@@ -1,12 +1,13 @@
 package main
 
 import (
-	"fmt"
+	"context"
 	"net/http"
 	"strings"
+	"time"
 
 	"github.com/Arafetki/my-portfolio-api/internal/models"
-	"github.com/golang-jwt/jwt/v5"
+	"github.com/nedpals/supabase-go"
 )
 
 func (app *application) authenticate(next http.Handler) http.Handler {
@@ -31,28 +32,20 @@ func (app *application) authenticate(next http.Handler) http.Handler {
 		// Todo : Validate Token
 		tokenString := headerParts[1]
 
-		t, err := jwt.ParseWithClaims(tokenString, &Claims{}, func(token *jwt.Token) (any, error) {
-			if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
-				return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
-			}
-			return []byte(app.cfg.jwt.secretkey), nil
-		})
+		supabaseClient := supabase.CreateClient(app.cfg.supabase.url, app.cfg.supabase.key)
 
+		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+		defer cancel()
+
+		user, err := supabaseClient.Auth.User(ctx, tokenString)
 		if err != nil {
-			app.logger.Error(err.Error())
 			app.invalidAuthenticationTokenResponse(w, r)
 			return
 		}
-
-		if claims, ok := t.Claims.(*Claims); ok && t.Valid {
-			r = app.contextSetUser(r, &models.User{
-				ID:    claims.Subject,
-				Email: claims.Email,
-			})
-		} else {
-			app.invalidAuthenticationTokenResponse(w, r)
-			return
-		}
+		r = app.contextSetUser(r, &models.User{
+			ID:    user.ID,
+			Email: user.Email,
+		})
 
 		next.ServeHTTP(w, r)
 
