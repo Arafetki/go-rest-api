@@ -62,5 +62,6 @@ func (app *application) requireAuthenticatedUser(next http.Handler) http.Handler
 		}
 
 		next.ServeHTTP(w, r)
+
 	})
 }
