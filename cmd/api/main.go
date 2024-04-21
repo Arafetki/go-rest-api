@@ -32,8 +32,9 @@ type config struct {
 		dsn         string
 		automigrate bool
 	}
-	jwt struct {
-		secretkey string
+	supabase struct {
+		url string
+		key string
 	}
 }
 
@@ -66,9 +67,10 @@ func run(logger *slog.Logger) error {
 	cfg.env = env.GetString("APP_ENV", "development")
 	cfg.db.automigrate = env.GetBool("DB_AUTOMIGRATE", true)
 	cfg.db.dsn = os.Getenv("DB_DSN")
-	cfg.jwt.secretkey = os.Getenv("SUPABASE_JWT_SECRET")
-	if cfg.jwt.secretkey == "" {
-		return errors.New("please set the SUPABASE_JWT_SECRET environment variable")
+	cfg.supabase.url = env.GetString("SUPABASE_PROJECT_URL", "https://qyxtftopwhvtlzvuchvh.supabase.co")
+	cfg.supabase.key = os.Getenv("SUPABASE_PROJECT_KEY")
+	if cfg.supabase.key == "" {
+		return errors.New("please set the SUPABASE_PROJECT_KEY environment variable")
 	}
 
 	db, err := database.New(cfg.db.dsn, cfg.db.automigrate)
