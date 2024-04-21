@@ -14,33 +14,36 @@ import (
 func (app *application) routes() http.Handler {
 
 	router := chi.NewRouter()
+
+	// @General : middlewares
 	router.Use(middleware.Logger)
 	router.Use(middleware.Recoverer)
+	router.Use(middleware.Heartbeat("/ping"))
+
 	router.NotFound(app.notFoundResponse)
 	router.MethodNotAllowed(app.methodNotAllowedResponse)
 
-	// Public
-	router.Use(middleware.Heartbeat("/ping"))
-
 	router.Route("/v1", func(r chi.Router) {
 
-		// Authentication middleware
 		r.Use(app.authenticate)
 
-		// Public - No bearer token should be provided in headers
+		// @API V1 : Public routes
 		r.Get("/healthcheck", app.checkHealthHandler)
 
-		// Private - Require bearer token to be provided in headers
-		// r.Use(app.requireAuthenticatedUser)
+		// @API V1 : Private routes
+		r.Group(func(privateRouter chi.Router) {
 
-		r.Get("/swagger/*", httpSwagger.Handler(
-			httpSwagger.URL(fmt.Sprintf("http://localhost:%d/v1/swagger/doc.json", app.cfg.httpPort)),
-			httpSwagger.DeepLinking(true),
-			httpSwagger.DocExpansion("none"),
-			httpSwagger.DomID("swagger-ui"),
-		),
-		)
-		r.Get("/metrics", expvar.Handler().ServeHTTP)
+			privateRouter.Use(app.requireAuthenticatedUser)
+
+			privateRouter.Get("/swagger/*", httpSwagger.Handler(
+				httpSwagger.URL(fmt.Sprintf("http://localhost:%d/v1/swagger/doc.json", app.cfg.httpPort)),
+				httpSwagger.DeepLinking(true),
+				httpSwagger.DocExpansion("none"),
+				httpSwagger.DomID("swagger-ui"),
+			),
+			)
+			privateRouter.Get("/metrics", expvar.Handler().ServeHTTP)
+		})
 
 	})
 
