@@ -46,9 +46,8 @@ func (app *application) authenticate(next http.Handler) http.Handler {
 
 		if claims, ok := t.Claims.(*Claims); ok && t.Valid {
 			r = app.contextSetUser(r, &models.User{
-				ID:       claims.ID,
-				FullName: claims.DisplayName,
-				Email:    claims.Email,
+				ID:    claims.Subject,
+				Email: claims.Email,
 			})
 		} else {
 			app.invalidAuthenticationTokenResponse(w, r)
