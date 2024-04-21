@@ -47,10 +47,14 @@ audit:
 
 
 .PHONY: build
-## build the cmd/api application
+## build the application
 build:
 	go build -ldflags='-s -w' -o=./bin/api ./cmd/api
 
+.PHONY: run
+## run the application
+run: build
+	./bin/api
 
 .PHONY: run/live
 ## run the application with reloading on file changes
