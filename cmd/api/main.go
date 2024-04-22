@@ -8,6 +8,7 @@ import (
 	"sync"
 
 	database "github.com/Arafetki/my-portfolio-api/internal/db"
+	"github.com/Arafetki/my-portfolio-api/internal/db/store"
 	"github.com/Arafetki/my-portfolio-api/internal/env"
 	"github.com/Arafetki/my-portfolio-api/internal/repository"
 	"github.com/go-playground/validator/v10"
@@ -84,10 +85,12 @@ func run(logger *slog.Logger) error {
 
 	logger.Info("db connection has been established sucessfully!")
 
+	store := store.NewStore(db)
+
 	app := &application{
 		cfg:        cfg,
 		logger:     logger,
-		repository: repository.NewRepo(db),
+		repository: repository.NewRepo(store),
 		validator:  validator.New(),
 	}
 
