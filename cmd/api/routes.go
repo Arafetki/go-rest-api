@@ -30,6 +30,7 @@ func (app *application) routes() http.Handler {
 		// @API V1 : Public routes
 		r.Get("/healthcheck", app.checkHealthHandler)
 		// r.Get("/articles/{id}", app.fetchArticleHandler)
+		r.Post("/subs", app.createSubHandler)
 
 		// @API V1 : Private routes
 		r.Group(func(privateRouter chi.Router) {
@@ -47,6 +48,9 @@ func (app *application) routes() http.Handler {
 
 			privateRouter.Post("/articles", app.createArticleHandler)
 			privateRouter.Delete("/articles/{id}", app.deleteArticleHandler)
+
+			privateRouter.Get("/subs", app.fetchAllSubsHandler)
+			privateRouter.Delete("/subs/{email}", app.deleteSubHandler)
 		})
 
 	})
