@@ -7,6 +7,7 @@ type Article struct {
 	Title       string    `json:"title" validate:"required,max=100"`
 	Body        string    `json:"body"`
 	Author      string    `json:"author" validate:"required,max=50"`
+	Tags        []string  `json:"tags"`
 	Published   bool      `json:"published"`
 	PublishDate string    `json:"publish_date"`
 	Created     time.Time `json:"created"`
