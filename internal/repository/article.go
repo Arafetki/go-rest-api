@@ -2,95 +2,52 @@ package repository
 
 import (
 	"context"
-	"errors"
+	"strings"
 	"time"
 
-	database "github.com/Arafetki/my-portfolio-api/internal/db"
+	"github.com/Arafetki/my-portfolio-api/internal/db/store"
 	"github.com/Arafetki/my-portfolio-api/internal/models"
 )
 
 type ArticleRepo struct {
-	db *database.DB
+	store *store.Store
 }
 
-var (
-	ErrRecordNotFound = errors.New("record not found")
-)
+type createArticleTxResult struct {
+	Article models.Article
+}
 
-func (ar ArticleRepo) Create(article *models.Article) error {
+func (ar ArticleRepo) Create(article *models.Article, catIds []int) (*createArticleTxResult, error) {
+
+	var result createArticleTxResult
 
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
 
-	query := `INSERT INTO blog.articles (title,body,author,published,publish_date)
-			  VALUES ($1,$2,$3,$4,$5)
-			  RETURNING id,created;`
+	err := ar.store.ExecTx(ctx, func(q *store.Queries) error {
+		var err error
+		err = q.CreateArticle(ctx, article)
+		if err != nil {
+			return err
+		}
 
-	args := []any{article.Title, article.Body, article.Author, article.Published, article.PublishDate}
+		err = q.CreateArticleCategories(ctx, article.ID, catIds)
+		if err != nil {
+			if strings.Contains(err.Error(), "violates foreign key constraint") {
+				return ErrForeignKeyViolation
+			}
+			return err
+		}
 
-	err := ar.db.QueryRowxContext(ctx, query, args...).Scan(
-		&article.ID,
-		&article.Created,
-	)
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func (ar ArticleRepo) GetByID(id int) (models.Article, error) {
-
-	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
-	defer cancel()
-
-	query := `SELECT * FROM blog.articles
-			WHERE id=$1;`
-
-	var article models.Article
-
-	err := ar.db.QueryRowxContext(ctx, query, id).Scan(
-		&article.ID,
-		&article.Title,
-		&article.Body,
-		&article.Author,
-		&article.Published,
-		&article.PublishDate,
-		&article.Created,
-	)
+		return nil
+	})
 
 	if err != nil {
-		return models.Article{}, err
+		return nil, err
 	}
 
-	return article, nil
+	result.Article = *article
 
-}
+	return &result, nil
 
-func (ar ArticleRepo) Delete(id int) error {
-
-	if id < 1 {
-		return ErrRecordNotFound
-	}
-
-	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
-	defer cancel()
-
-	query := `DELETE FROM blog.articles
-			  WHERE id=$1;`
-
-	res, err := ar.db.ExecContext(ctx, query, id)
-	if err != nil {
-		return err
-	}
-
-	rowsAffected, err := res.RowsAffected()
-	if err != nil {
-		return err
-	}
-	if rowsAffected == 0 {
-		return ErrRecordNotFound
-	}
-
-	return nil
 }

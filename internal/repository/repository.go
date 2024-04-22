@@ -1,20 +1,18 @@
 package repository
 
 import (
-	database "github.com/Arafetki/my-portfolio-api/internal/db"
+	"github.com/Arafetki/my-portfolio-api/internal/db/store"
 	"github.com/Arafetki/my-portfolio-api/internal/models"
 )
 
 type Repository struct {
 	Article interface {
-		Create(ar *models.Article) error
-		GetByID(id int) (models.Article, error)
-		Delete(id int) error
+		Create(ar *models.Article, catIds []int) (*createArticleTxResult, error)
 	}
 }
 
-func NewRepo(db *database.DB) *Repository {
+func NewRepo(store *store.Store) *Repository {
 	return &Repository{
-		Article: ArticleRepo{db},
+		Article: ArticleRepo{store},
 	}
 }
