@@ -17,10 +17,10 @@ func (app *application) createArticleHandler(w http.ResponseWriter, r *http.Requ
 	user := app.contextGetUser(r)
 
 	var input struct {
-		Title         string `json:"title"`
-		Body          string `json:"body"`
-		CategoriesIds []int  `json:"categories_ids"`
-		Published     bool   `json:"published"`
+		Title     string   `json:"title"`
+		Body      string   `json:"body"`
+		Tags      []string `json:"tags"`
+		Published bool     `json:"published"`
 	}
 
 	err := request.DecodeJSON(w, r, &input)
@@ -32,6 +32,7 @@ func (app *application) createArticleHandler(w http.ResponseWriter, r *http.Requ
 	article := &models.Article{
 		Title:       input.Title,
 		Body:        input.Body,
+		Tags:        input.Tags,
 		Published:   input.Published,
 		PublishDate: "0001-01-01",
 	}
@@ -47,18 +48,13 @@ func (app *application) createArticleHandler(w http.ResponseWriter, r *http.Requ
 		return
 	}
 
-	res, err := app.repository.Article.Create(article, input.CategoriesIds)
+	err = app.repository.Article.Create(article)
 	if err != nil {
-		switch {
-		case errors.Is(err, repository.ErrForeignKeyViolation):
-			app.errorMessage(w, r, http.StatusUnprocessableEntity, "Failed to create the article", nil)
-		default:
-			app.internalServerErrorResponse(w, r, err)
-		}
+		app.internalServerErrorResponse(w, r, err)
 		return
 	}
 
-	err = response.JSON(w, http.StatusCreated, res)
+	err = response.JSON(w, http.StatusCreated, envelope{"article": article})
 	if err != nil {
 		app.internalServerErrorResponse(w, r, err)
 	}
