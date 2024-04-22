@@ -52,7 +52,8 @@ const version = "1.0.0"
 
 func main() {
 
-	logger := slog.New(tint.NewHandler(os.Stdout, &tint.Options{Level: slog.LevelDebug}))
+	logLevelString := env.GetString("LOG_LEVEL", "debug")
+	logger := slog.New(tint.NewHandler(os.Stdout, &tint.Options{Level: parseLogLevel(logLevelString)}))
 
 	err := run(logger)
 	if err != nil {

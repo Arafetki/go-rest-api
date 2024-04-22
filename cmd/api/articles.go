@@ -51,7 +51,7 @@ func (app *application) createArticleHandler(w http.ResponseWriter, r *http.Requ
 	if err != nil {
 		switch {
 		case errors.Is(err, repository.ErrForeignKeyViolation):
-			app.errorMessage(w, r, http.StatusUnprocessableEntity, "the resource douldn't be created", nil)
+			app.errorMessage(w, r, http.StatusUnprocessableEntity, "Failed to create the article", nil)
 		default:
 			app.internalServerErrorResponse(w, r, err)
 		}
@@ -89,28 +89,28 @@ func (app *application) createArticleHandler(w http.ResponseWriter, r *http.Requ
 // 	}
 // }
 
-// func (app *application) deleteArticleHandler(w http.ResponseWriter, r *http.Request) {
+func (app *application) deleteArticleHandler(w http.ResponseWriter, r *http.Request) {
 
-// 	id, err := getIDParam(r)
-// 	if err != nil {
-// 		app.badRequestResponse(w, r, err)
-// 		return
-// 	}
+	id, err := getIDParam(r)
+	if err != nil {
+		app.badRequestResponse(w, r, err)
+		return
+	}
 
-// 	err = app.repository.Article.Delete(id)
-// 	if err != nil {
-// 		switch {
-// 		case errors.Is(err, repository.ErrRecordNotFound):
-// 			app.notFoundResponse(w, r)
-// 		default:
-// 			app.internalServerErrorResponse(w, r, err)
-// 		}
-// 		return
-// 	}
+	err = app.repository.Article.Delete(id)
+	if err != nil {
+		switch {
+		case errors.Is(err, repository.ErrRecordNotFound):
+			app.notFoundResponse(w, r)
+		default:
+			app.internalServerErrorResponse(w, r, err)
+		}
+		return
+	}
 
-// 	err = response.JSON(w, http.StatusOK, envelope{"message": "article successfully deleted"})
-// 	if err != nil {
-// 		app.internalServerErrorResponse(w, r, err)
-// 	}
+	err = response.JSON(w, http.StatusOK, envelope{"message": "Article successfully deleted"})
+	if err != nil {
+		app.internalServerErrorResponse(w, r, err)
+	}
 
-// }
+}

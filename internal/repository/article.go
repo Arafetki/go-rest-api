@@ -31,7 +31,7 @@ func (ar ArticleRepo) Create(article *models.Article, catIds []int) (*createArti
 			return err
 		}
 
-		err = q.CreateArticleCategories(ctx, article.ID, catIds)
+		err = q.AddArticleToCategories(ctx, article.ID, catIds)
 		if err != nil {
 			if strings.Contains(err.Error(), "violates foreign key constraint") {
 				return ErrForeignKeyViolation
@@ -50,4 +50,26 @@ func (ar ArticleRepo) Create(article *models.Article, catIds []int) (*createArti
 
 	return &result, nil
 
+}
+
+func (ar ArticleRepo) Delete(id int) error {
+
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	res, err := ar.store.Queries.DeleteArticle(ctx, id)
+	if err != nil {
+		return err
+	}
+
+	rowsAffected, err := res.RowsAffected()
+	if err != nil {
+		return err
+	}
+
+	if rowsAffected == 0 {
+		return ErrRecordNotFound
+	}
+
+	return nil
 }
