@@ -45,3 +45,4 @@ func (q *Queries) DeleteArticle(ctx context.Context, id int) (sql.Result, error)
 	return res, err
 
 }
+

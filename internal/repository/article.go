@@ -70,6 +70,5 @@ func (ar ArticleRepo) Delete(id int) error {
 	if rowsAffected == 0 {
 		return ErrRecordNotFound
 	}
-
-	return nil
+  return nil
 }
