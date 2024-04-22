@@ -30,15 +30,17 @@ func (app *application) createArticleHandler(w http.ResponseWriter, r *http.Requ
 	}
 
 	article := &models.Article{
-		Title:       input.Title,
-		Body:        input.Body,
-		Tags:        input.Tags,
-		Published:   input.Published,
-		PublishDate: "0001-01-01",
+		Title:     input.Title,
+		Body:      input.Body,
+		Tags:      input.Tags,
+		Published: input.Published,
 	}
 	article.Author = user.Email
+
 	if article.Published {
 		article.PublishDate = time.Now().Format("2006-01-02")
+	} else {
+		article.PublishDate = "0001-01-01"
 	}
 
 	err = app.validator.Struct(article)
