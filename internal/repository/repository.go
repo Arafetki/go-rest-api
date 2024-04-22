@@ -10,10 +10,16 @@ type Repository struct {
 		Create(ar *models.Article) error
 		Delete(id int) error
 	}
+	Subscriber interface {
+		Create(sub *models.Subscriber) error
+		Delete(email string) error
+		GetAllEmails() ([]string, error)
+	}
 }
 
 func NewRepo(store *store.Store) *Repository {
 	return &Repository{
-		Article: ArticleRepo{store},
+		Article:    ArticleRepo{store},
+		Subscriber: SubscriberRepo{store},
 	}
 }
