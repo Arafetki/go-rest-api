@@ -90,3 +90,38 @@ func (app *application) deleteArticleHandler(w http.ResponseWriter, r *http.Requ
 	}
 
 }
+
+func (app *application) listArticlesHandler(w http.ResponseWriter, r *http.Request) {
+
+	var input struct {
+		Title string
+		Tags  []string
+		models.Filters
+	}
+
+	qs := r.URL.Query()
+
+	input.Title = readString(qs, "title", "")
+	input.Tags = readCsv(qs, "tags", []string{})
+	input.Page = readInt(qs, "page", 1)
+	input.PageSize = readInt(qs, "page_size", 20)
+
+	err := app.validator.Struct(input)
+	if err != nil {
+		validationErrors := err.(validator.ValidationErrors)
+		app.failedValidationResponse(w, r, validationErrors)
+		return
+	}
+
+	articles, err := app.repository.Article.Get(input.Title, input.Tags, input.Filters)
+	if err != nil {
+		app.internalServerErrorResponse(w, r, err)
+		return
+	}
+
+	err = response.JSON(w, http.StatusOK, envelope{"articles": articles})
+	if err != nil {
+		app.internalServerErrorResponse(w, r, err)
+	}
+
+}

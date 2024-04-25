@@ -9,6 +9,7 @@ type Repository struct {
 	Article interface {
 		Create(ar *models.Article) error
 		Delete(id int) error
+		Get(title string, tags []string, filters models.Filters) ([]models.Article, error)
 	}
 	Subscriber interface {
 		Create(sub *models.Subscriber) error

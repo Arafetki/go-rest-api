@@ -21,6 +21,15 @@ func (ar ArticleRepo) Create(article *models.Article) error {
 
 }
 
+func (ar ArticleRepo) Get(title string, tags []string, filters models.Filters) ([]models.Article, error) {
+
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	return ar.store.GetArticles(ctx, title, tags, filters)
+
+}
+
 func (ar ArticleRepo) Delete(id int) error {
 
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
