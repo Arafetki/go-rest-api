@@ -10,8 +10,8 @@ import (
 func (q *Queries) CreateSubscriber(ctx context.Context, sub *models.Subscriber) error {
 
 	query := `INSERT INTO blog.subscribers (email)
-			VALUES ($1)
-			RETURNING id,created;`
+			  VALUES ($1)
+			  RETURNING id,created;`
 
 	return q.db.QueryRowxContext(ctx, query, sub.Email).Scan(&sub.ID, &sub.Created)
 }

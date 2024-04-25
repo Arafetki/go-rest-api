@@ -53,7 +53,7 @@ func (app *application) createSubHandler(w http.ResponseWriter, r *http.Request)
 
 }
 
-func (app *application) fetchAllSubsHandler(w http.ResponseWriter, r *http.Request) {
+func (app *application) listAllSubsHandler(w http.ResponseWriter, r *http.Request) {
 
 	subs, err := app.repository.Subscriber.GetAllEmails()
 	if err != nil {

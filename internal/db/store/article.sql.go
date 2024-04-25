@@ -31,3 +31,44 @@ func (q *Queries) DeleteArticle(ctx context.Context, id int) (sql.Result, error)
 	return res, err
 
 }
+
+func (q *Queries) GetArticles(ctx context.Context, title string, tags []string, filters models.Filters) ([]models.Article, error) {
+
+	query := `SELECT * FROM blog.articles
+			  WHERE (to_tsvector('simple', title) @@ plainto_tsquery('simple', $1) OR $1 = '')
+			  AND (tags @> $2 OR $2 = '{}')
+			  ORDER BY id
+			  LIMIT $3 OFFSET $4`
+
+	rows, err := q.db.QueryxContext(ctx, query, title, pq.Array(tags), filters.Limit(), filters.Offset())
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	articles := []models.Article{}
+
+	for rows.Next() {
+		var article models.Article
+		err := rows.Scan(
+			&article.ID,
+			&article.Title,
+			&article.Body,
+			&article.Author,
+			pq.Array(article.Tags),
+			&article.Published,
+			&article.PublishDate,
+			&article.Created,
+		)
+		if err != nil {
+			return nil, err
+		}
+		articles = append(articles, article)
+
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return articles, nil
+}
