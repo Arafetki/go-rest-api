@@ -9,7 +9,7 @@ import (
 	"github.com/Arafetki/my-portfolio-api/internal/repository"
 	"github.com/Arafetki/my-portfolio-api/internal/request"
 	"github.com/Arafetki/my-portfolio-api/internal/response"
-	"github.com/go-playground/validator/v10"
+	"github.com/Arafetki/my-portfolio-api/internal/validator"
 )
 
 func (app *application) createArticleHandler(w http.ResponseWriter, r *http.Request) {
@@ -43,10 +43,10 @@ func (app *application) createArticleHandler(w http.ResponseWriter, r *http.Requ
 		article.PublishDate = "0001-01-01"
 	}
 
-	err = app.validator.Struct(article)
-	if err != nil {
-		validationErrors := err.(validator.ValidationErrors)
-		app.failedValidationResponse(w, r, validationErrors)
+	v := validator.New()
+
+	if models.ValidateArticle(v, article); v.HasErrors() {
+		app.failedValidationResponse(w, r, v.Errors)
 		return
 	}
 
@@ -99,17 +99,19 @@ func (app *application) listArticlesHandler(w http.ResponseWriter, r *http.Reque
 		models.Filters
 	}
 
+	v := validator.New()
 	qs := r.URL.Query()
 
 	input.Title = readString(qs, "title", "")
 	input.Tags = readCsv(qs, "tags", []string{})
 	input.Page = readInt(qs, "page", 1)
 	input.PageSize = readInt(qs, "page_size", 20)
+	input.Sort = readString(qs, "sort", "id")
 
-	err := app.validator.Struct(input)
-	if err != nil {
-		validationErrors := err.(validator.ValidationErrors)
-		app.failedValidationResponse(w, r, validationErrors)
+	input.SortSafeList = []string{"id", "title", "publish_date", "-id", "-title", "-publish_date"}
+
+	if models.ValidateFilters(v, input.Filters); v.HasErrors() {
+		app.failedValidationResponse(w, r, v.Errors)
 		return
 	}
 

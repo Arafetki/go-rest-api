@@ -7,7 +7,6 @@ import (
 	"runtime/debug"
 
 	"github.com/Arafetki/my-portfolio-api/internal/response"
-	"github.com/go-playground/validator/v10"
 )
 
 func (app *application) logServerError(r *http.Request, err error) {
@@ -63,6 +62,6 @@ func (app *application) badRequestResponse(w http.ResponseWriter, r *http.Reques
 	app.errorMessage(w, r, http.StatusBadRequest, err.Error(), nil)
 }
 
-func (app *application) failedValidationResponse(w http.ResponseWriter, r *http.Request, errors validator.ValidationErrors) {
+func (app *application) failedValidationResponse(w http.ResponseWriter, r *http.Request, errors map[string]string) {
 	app.errorMessage(w, r, http.StatusUnprocessableEntity, errors, nil)
 }

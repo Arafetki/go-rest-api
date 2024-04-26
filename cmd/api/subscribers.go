@@ -8,8 +8,8 @@ import (
 	"github.com/Arafetki/my-portfolio-api/internal/repository"
 	"github.com/Arafetki/my-portfolio-api/internal/request"
 	"github.com/Arafetki/my-portfolio-api/internal/response"
+	"github.com/Arafetki/my-portfolio-api/internal/validator"
 	"github.com/go-chi/chi/v5"
-	"github.com/go-playground/validator/v10"
 )
 
 func (app *application) createSubHandler(w http.ResponseWriter, r *http.Request) {
@@ -28,10 +28,10 @@ func (app *application) createSubHandler(w http.ResponseWriter, r *http.Request)
 		Email: input.Email,
 	}
 
-	err = app.validator.Struct(sub)
-	if err != nil {
-		validationErrors := err.(validator.ValidationErrors)
-		app.failedValidationResponse(w, r, validationErrors)
+	v := validator.New()
+	v.Check(validator.Matchs(sub.Email, *validator.EmailRX), "email", "must be valid email address")
+	if v.HasErrors() {
+		app.failedValidationResponse(w, r, v.Errors)
 		return
 	}
 
@@ -69,20 +69,16 @@ func (app *application) listAllSubsHandler(w http.ResponseWriter, r *http.Reques
 
 func (app *application) deleteSubHandler(w http.ResponseWriter, r *http.Request) {
 
-	var input struct {
-		Email string `validate:"required,email"`
-	}
+	email := chi.URLParamFromCtx(r.Context(), "email")
 
-	input.Email = chi.URLParamFromCtx(r.Context(), "email")
-
-	err := app.validator.Struct(input)
-	if err != nil {
-		validationErrors := err.(validator.ValidationErrors)
-		app.failedValidationResponse(w, r, validationErrors)
+	v := validator.New()
+	v.Check(validator.Matchs(email, *validator.EmailRX), "email", "must be valid email address")
+	if v.HasErrors() {
+		app.failedValidationResponse(w, r, v.Errors)
 		return
 	}
 
-	err = app.repository.Subscriber.Delete(input.Email)
+	err := app.repository.Subscriber.Delete(email)
 	if err != nil {
 		switch {
 		case errors.Is(err, repository.ErrRecordNotFound):

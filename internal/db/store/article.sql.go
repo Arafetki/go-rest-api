@@ -3,6 +3,7 @@ package store
 import (
 	"context"
 	"database/sql"
+	"fmt"
 
 	"github.com/Arafetki/my-portfolio-api/internal/models"
 	"github.com/lib/pq"
@@ -34,11 +35,11 @@ func (q *Queries) DeleteArticle(ctx context.Context, id int) (sql.Result, error)
 
 func (q *Queries) GetArticles(ctx context.Context, title string, tags []string, filters models.Filters) ([]models.Article, error) {
 
-	query := `SELECT * FROM blog.articles
-			  WHERE (to_tsvector('simple', title) @@ plainto_tsquery('simple', $1) OR $1 = '')
-			  AND (tags @> $2 OR $2 = '{}')
-			  ORDER BY id
-			  LIMIT $3 OFFSET $4`
+	query := fmt.Sprintf(`SELECT * FROM blog.articles
+			 			  WHERE (to_tsvector('simple', title) @@ plainto_tsquery('simple', $1) OR $1 = '')
+			 			  AND (tags @> $2 OR $2 = '{}')
+			  			  ORDER BY %s %s, id ASC
+			  			  LIMIT $3 OFFSET $4;`, filters.SortColumn(), filters.SortDirection())
 
 	rows, err := q.db.QueryxContext(ctx, query, title, pq.Array(tags), filters.Limit(), filters.Offset())
 	if err != nil {

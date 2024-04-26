@@ -1,9 +1,11 @@
 package models
 
-import "time"
+import (
+	"time"
+)
 
 type Subscriber struct {
 	ID      int       `json:"id"`
-	Email   string    `json:"email" validate:"required,email"`
+	Email   string    `json:"email"`
 	Created time.Time `json:"created"`
 }
