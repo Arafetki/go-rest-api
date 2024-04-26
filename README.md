@@ -1,7 +1,7 @@
 <h1 align="center">
-  Personal Portfolio Website
+  REST API in Golang
 </h1>
 
 <p align="center">
-  The Rest API of <a href="#" target="_blank">Arafet BenKilani's</a> Personal Portfolio Website built with <a href="https://go.dev/" target="_blank">GoLang</a>
+  Example of a REST API Written in <a href="https://go.dev/" target="_blank">GoLang</a>
 </p>
